@@ -5,12 +5,13 @@ import Results from './routes/Results';
 import Navbar from './layout/Navbar';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'react-datepicker/dist/react-datepicker.css';
-
+import './App.css'; // Ensure you have your custom styles
 
 function App() {
   return (
     <>
       <Navbar />
+      <h1 className="text-2xl font-bold text-green-600">Tailwind is working!</h1>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/results" element={<Results />} />

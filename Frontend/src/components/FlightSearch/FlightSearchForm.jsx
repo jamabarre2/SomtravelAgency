@@ -4,6 +4,7 @@ import TripTypeSelector from './TripTypeSelector';
 import AirportSelect from './AirportSelect';
 import DateInputGroup from './DateInputGroup';
 import PassengerSelector from './PassengerSelector';
+import TravelClassSelector from './TravelClassSelector';
 
 const FlightSearchForm = ({ onSearch }) => {
   const {
@@ -19,7 +20,8 @@ const FlightSearchForm = ({ onSearch }) => {
       from: null,
       to: null,
       departureDate: '',
-      returnDate: ''
+      returnDate: '',
+      travelClass: 'ECONOMY'
     }
   });
 
@@ -41,7 +43,7 @@ const FlightSearchForm = ({ onSearch }) => {
       adults: passengers.adult,
       children: passengers.child,
       infants: passengers.infant,
-      travelClass: 'ECONOMY',
+      travelClass: data.travelClass,
       currencyCode: 'EUR'
     };
 
@@ -55,17 +57,32 @@ const FlightSearchForm = ({ onSearch }) => {
         className="border rounded shadow-sm p-4 bg-white"
         style={{ maxWidth: '800px', margin: 'auto' }}
       >
+        {/* Trip Type Selector */}
         <TripTypeSelector control={control} />
 
+        {/* From / To Airports */}
         <div className="row">
           <div className="col-md-6 mb-3">
-            <AirportSelect name="from" control={control} label="From" error={errors.from} />
+            <AirportSelect
+              name="from"
+              control={control}
+              label="From"
+              error={errors.from}
+              rules={{ required: 'Origin airport is required' }}
+            />
           </div>
           <div className="col-md-6 mb-3">
-            <AirportSelect name="to" control={control} label="To" error={errors.to} />
+            <AirportSelect
+              name="to"
+              control={control}
+              label="To"
+              error={errors.to}
+              rules={{ required: 'Destination airport is required' }}
+            />
           </div>
         </div>
 
+        {/* Dates */}
         <DateInputGroup
           control={control}
           register={register}
@@ -74,8 +91,17 @@ const FlightSearchForm = ({ onSearch }) => {
           errors={errors}
         />
 
-        <div className="mb-3">
-          <PassengerSelector passengers={passengers} setPassengers={setPassengers} />
+        {/* Passenger & Travel Class Selectors Aligned */}
+        <div className="row mb-3">
+          <div className="col-md-6 d-flex flex-column justify-content-end">
+            <PassengerSelector
+              passengers={passengers}
+              setPassengers={setPassengers}
+            />
+          </div>
+          <div className="col-md-6 d-flex flex-column justify-content-end">
+            <TravelClassSelector control={control} />
+          </div>
         </div>
 
         <button type="submit" className="btn btn-primary w-100">

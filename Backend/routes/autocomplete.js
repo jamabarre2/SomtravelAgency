@@ -12,21 +12,17 @@ router.get('/', async (req, res) => {
   try {
     const response = await amadeus.referenceData.locations.get({
       keyword,
-      subType: 'AIRPORT',
+      subType: 'AIRPORT' || 'CITY',
     });
 
-   
+    if (response.data.length === 0) {
+      return res.status(404).json({ error: 'No locations found' });
+    }
     res.json(response.data);
   } catch (err) {
-    console.warn('⚠️ Amadeus autocomplete failed, using fallback');
+    console.warn('⚠️ Amadeus autocomplete failed, using fallback', err.response);
     // Filter fallback list by keyword
-    const filtered = fallbackAirports.filter(a =>
-      a.name.toLowerCase().includes(keyword.toLowerCase()) ||
-      a.city.toLowerCase().includes(keyword.toLowerCase()) ||
-      a.iataCode.toLowerCase().includes(keyword.toLowerCase())
-    );
-
-    res.json(filtered);
+    res.json("Amadeus autocomplete failed, using fallback");
   }
 });
 
