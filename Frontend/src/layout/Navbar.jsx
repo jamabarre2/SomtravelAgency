@@ -1,45 +1,82 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
-import './Navbar.css';
+import './Navbar.css'; // Optional if you want to keep custom styles
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-
   return (
-    <header className="navbar-main sticky-top shadow-sm ">
-      <div className="navbar-container ">
+    <nav className="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+      <div className="container">
         {/* Logo */}
-        <NavLink to="/" className="logo" >
-          <img src="/logo.png" alt="SOMTRAVEL AGENCY" />
+        <NavLink className="navbar-brand" to="/">
+          <img src="/logo.png" alt="SOMTRAVEL AGENCY" height="40" />
         </NavLink>
 
         {/* Mobile Toggle */}
-        <button className="menu-toggle" onClick={() => setIsOpen(!isOpen)}>
-          <span className="bar"></span>
-          <span className="bar"></span>
-          <span className="bar"></span>
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#mainNavbar"
+          aria-controls="mainNavbar"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span className="navbar-toggler-icon"></span>
         </button>
 
         {/* Nav Links */}
-        <nav className={`nav-links ${isOpen ? 'open' : ''}`}>
-          <NavLink to="/" end>Home</NavLink>
-          <NavLink to="/ndc">⭐ NDC</NavLink>
-          <NavLink to="/ethnic">✈️ Ethnic</NavLink>
-          <NavLink to="/transactions">Transactions</NavLink>
-          <NavLink to="/charge-deposit">Charge Deposit</NavLink>
+        <div className="collapse navbar-collapse justify-content-center" id="mainNavbar">
+          <ul className="navbar-nav mb-2 mb-lg-0">
 
-          <div className="dropdown">
-            <span>Reserves ▾</span>
-            <div className="dropdown-menu">
-              <NavLink to="/reserves/domestic">Domestic</NavLink>
-              <NavLink to="/reserves/international">International</NavLink>
-            </div>
-          </div>
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/" end>Home</NavLink>
+            </li>
 
-          <NavLink to="/support">Support</NavLink>
-        </nav>
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/ndc">⭐ NDC</NavLink>
+            </li>
+
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/ethnic">✈️ Ethnic</NavLink>
+            </li>
+
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/transactions">Transactions</NavLink>
+            </li>
+
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/charge-deposit">Charge Deposit</NavLink>
+            </li>
+
+            {/* Dropdown */}
+            <li className="nav-item dropdown">
+              <span
+                className="nav-link dropdown-toggle"
+                id="reservesDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Reserves
+              </span>
+              <ul className="dropdown-menu" aria-labelledby="reservesDropdown">
+                <li>
+                  <NavLink className="dropdown-item" to="/reserves/domestic">Domestic</NavLink>
+                </li>
+                <li>
+                  <NavLink className="dropdown-item" to="/reserves/international">International</NavLink>
+                </li>
+              </ul>
+            </li>
+
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/support">Support</NavLink>
+            </li>
+
+          </ul>
+        </div>
       </div>
-    </header>
+    </nav>
   );
 };
 

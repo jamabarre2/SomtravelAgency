@@ -1,26 +1,53 @@
-import React from 'react';
-import './FlightOfferCard.css'; // optional styles
+import React, { useState } from 'react';
+import './FlightOfferCard.css';
+import axios from 'axios';
+import { Modal, Button } from 'react-bootstrap';
 
 const FlightOfferCard = ({ offer }) => {
-  if (!offer || !offer.price || !offer.itineraries) {
-    return null;
-  }
+  const [showModal, setShowModal] = useState(false);
+  const [fareRules, setFareRules] = useState(null);
+  const [loadingRules, setLoadingRules] = useState(false);
+
+  if (!offer || !offer.price || !offer.itineraries) return null;
 
   const price = `${offer.price.total} ${offer.price.currency}`;
-  const passengerInfo = `${offer.travelerPricings?.length || 1}P for ADT`;
   const isNDC = offer.source !== 'GDS';
+
+  const travelerBreakdown = offer.travelerPricings.map(tp => {
+    const count = 1;
+    const typeMap = {
+      ADULT: 'ADULT',
+      CHILD: 'CHILD',
+      INFANT: 'INFANT',
+      HELD_INFANT: 'INFANT'
+    };
+    const label = typeMap[tp.travelerType] || tp.travelerType;
+    return `${count > 1 ? count + ' ' : ''}${label}: ${tp.price.total} ${tp.price.currency}`;
+  });
+
+  const getFareRules = async () => {
+    setShowModal(true);
+    setLoadingRules(true);
+    try {
+      const response = await axios.post('/api/flight-fare-rules', offer);
+      setFareRules(response.data);
+    } catch (err) {
+      console.error('Failed to fetch fare rules:', err);
+      setFareRules(null);
+    } finally {
+      setLoadingRules(false);
+    }
+  };
 
   return (
     <div className="card shadow-sm border-2 mb-4 border-primary rounded p-3">
       <div className="d-flex justify-content-between align-items-start">
-        {/* Left: Itineraries */}
         <div className="w-75">
           {offer.itineraries.map((itinerary, i) => (
             <div key={i} className="border-bottom pb-2 mb-2">
               <div className="mb-2 text-muted small text-end">
                 Total Journey Time: <strong>{getTotalJourneyTime(itinerary)}</strong>
               </div>
-
               {itinerary.segments.map((seg, idx) => {
                 const showLayover = idx > 0;
                 const prevSegment = itinerary.segments[idx - 1];
@@ -35,7 +62,6 @@ const FlightOfferCard = ({ offer }) => {
                         Layover in {prevSegment.arrival.iataCode}: <strong>{layoverTime}</strong>
                       </div>
                     )}
-
                     <div className="d-flex align-items-start gap-3 mb-2">
                       <img
                         src={`https://pics.avs.io/60/60/${seg.carrierCode}.png`}
@@ -72,23 +98,40 @@ const FlightOfferCard = ({ offer }) => {
           ))}
         </div>
 
-        {/* Right: Price and Action */}
         <div className="text-end">
           {isNDC && <div className="badge bg-purple mb-2">NDC</div>}
-          <div className="fw-bold text-end">{passengerInfo}</div>
-          <h5 className="text-danger">{price}</h5>
+          {travelerBreakdown.map((line, i) => (
+            <div key={i} className="small text-muted">{line}</div>
+          ))}
+          <h5 className="text-danger mt-1">{price}</h5>
           <div className="d-flex justify-content-end gap-2">
-            <button className="btn btn-outline-primary btn-sm">Details</button>
+            <button className="btn btn-outline-primary btn-sm" onClick={getFareRules}>Details</button>
             <button className="btn btn-outline-secondary btn-sm">System</button>
           </div>
           <button className="btn btn-primary btn-lg w-100 mt-2">Book</button>
         </div>
       </div>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Fare Rules</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {loadingRules && <p>Loading fare rules...</p>}
+          {!loadingRules && fareRules && (
+            <pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(fareRules.fareRules || 'No fare rule information available.', null, 2)}</pre>
+          )}
+          {!loadingRules && !fareRules && <p>No fare rule information available.</p>}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
-
-// --- Utilities ---
 
 function getDuration(duration) {
   const hours = duration.match(/(\d+)H/)?.[1] || '0';
@@ -107,7 +150,6 @@ function getLayoverTime(prevArrival, nextDeparture) {
   const departure = new Date(nextDeparture);
   const diffMs = departure - arrival;
   if (diffMs < 0) return '0h 0m';
-
   const totalMin = Math.floor(diffMs / (1000 * 60));
   const hours = Math.floor(totalMin / 60);
   const minutes = totalMin % 60;
@@ -116,10 +158,8 @@ function getLayoverTime(prevArrival, nextDeparture) {
 
 function getTotalJourneyTime(itinerary) {
   let totalMinutes = 0;
-
   itinerary.segments.forEach((seg, idx) => {
     totalMinutes += parseISODuration(seg.duration);
-
     if (idx > 0) {
       const prev = new Date(itinerary.segments[idx - 1].arrival.at);
       const next = new Date(seg.departure.at);
@@ -127,7 +167,6 @@ function getTotalJourneyTime(itinerary) {
       totalMinutes += layoverMin > 0 ? layoverMin : 0;
     }
   });
-
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   return `${hours}h ${minutes}m`;

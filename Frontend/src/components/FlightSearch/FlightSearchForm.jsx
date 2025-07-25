@@ -1,4 +1,3 @@
-// FlightSearchForm.js
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import TripTypeSelector from './TripTypeSelector';
@@ -68,7 +67,14 @@ const FlightSearchForm = ({ onSearch, initialData = {}, isMini = false }) => {
       currencyCode: 'EUR',
       tripType,
       searchDateWindow: data.flexibleDates ? 'PLUS_MINUS_3DAYS' : undefined,
-      flexibleDates: data.flexibleDates
+      flexibleDates: data.flexibleDates,
+
+      // ✅ Include full objects so form stays populated later
+      from: data.from,
+      to: data.to,
+      adults: passengers.adult,
+      children: passengers.child,
+      infants: passengers.infant
     };
 
     onSearch?.(payload);
@@ -89,10 +95,22 @@ const FlightSearchForm = ({ onSearch, initialData = {}, isMini = false }) => {
 
         <div className="row g-2 align-items-end">
           <div className="col-md-6">
-            <AirportSelect name="from" control={control} error={errors.from} rules={{ required: 'Origin airport is required' }} isMini={isMini} />
+            <AirportSelect
+              name="from"
+              control={control}
+              error={errors.from}
+              rules={{ required: 'Origin airport is required' }}
+              isMini={isMini}
+            />
           </div>
           <div className="col-md-6">
-            <AirportSelect name="to" control={control} error={errors.to} rules={{ required: 'Destination airport is required' }} isMini={isMini} />
+            <AirportSelect
+              name="to"
+              control={control}
+              error={errors.to}
+              rules={{ required: 'Destination airport is required' }}
+              isMini={isMini}
+            />
           </div>
         </div>
 

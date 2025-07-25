@@ -1,3 +1,4 @@
+// Results.js
 import React, { useEffect, useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import FlightSearchForm from '../components/FlightSearch/FlightSearchForm';
@@ -17,6 +18,7 @@ const Results = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [sortBy, setSortBy] = useState('cheapest');
+
   const [filters, setFilters] = useState({
     stops: 'all',
     maxDurationDeparture: 24,
@@ -25,6 +27,8 @@ const Results = () => {
     from: '',
     to: '',
     baggageIncluded: false,
+    departureTime: 0,
+    arrivalTime: 0,
     departureTimeRange: [0, 23],
     arrivalTimeRange: [0, 23]
   });
@@ -95,19 +99,21 @@ const Results = () => {
       const fromOk = !filters.from || f.itineraries[0].segments[0].departure.iataCode === filters.from;
       const toOk = !filters.to || f.itineraries[0].segments.slice(-1)[0].arrival.iataCode === filters.to;
 
-      const depOk = f.itineraries.every(i =>
-        i.segments.every(s => {
-          const h = new Date(s.departure.at).getHours();
-          return h >= filters.departureTimeRange[0] && h <= filters.departureTimeRange[1];
-        })
-      );
+      const depOk = filters.departureTimeRange?.length === 2 &&
+        f.itineraries.every(i =>
+          i.segments.every(s => {
+            const h = new Date(s.departure.at).getHours();
+            return h >= filters.departureTimeRange[0] && h <= filters.departureTimeRange[1];
+          })
+        );
 
-      const arrOk = f.itineraries.every(i =>
-        i.segments.every(s => {
-          const h = new Date(s.arrival.at).getHours();
-          return h >= filters.arrivalTimeRange[0] && h <= filters.arrivalTimeRange[1];
-        })
-      );
+      const arrOk = filters.arrivalTimeRange?.length === 2 &&
+        f.itineraries.every(i =>
+          i.segments.every(s => {
+            const h = new Date(s.arrival.at).getHours();
+            return h >= filters.arrivalTimeRange[0] && h <= filters.arrivalTimeRange[1];
+          })
+        );
 
       return stopsOk && durationOk && airlineOk && fromOk && toOk && depOk && arrOk;
     });
@@ -135,7 +141,7 @@ const Results = () => {
   if (!payload) return <p className="text-center mt-5">No search data found. Redirecting...</p>;
 
   return (
-    <div className="container my-4">
+    <div className="container-fluid my-4">
       <div className="row justify-content-center mb-4">
         <div className="col-12 col-md-10 col-lg-8">
           <FlightSearchForm onSearch={handleSearch} initialData={payload} isMini={true} />
