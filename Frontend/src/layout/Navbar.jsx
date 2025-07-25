@@ -1,21 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import './Navbar.css';
 
-const Navbar = () => (
-  <nav className="navbar fixed-bottom bg-white border-top d-flex justify-content-around py-2">
-    <NavLink to="/" className="text-center text-decoration-none text-dark">
-      <i className="bi bi-house"></i><br />
-      <small>Home</small>
-    </NavLink>
-    <div className="text-center text-muted">
-      <i className="bi bi-briefcase"></i><br />
-      <small>My Trips</small>
-    </div>
-    <div className="text-center text-muted">
-      <i className="bi bi-person"></i><br />
-      <small>Profile</small>
-    </div>
-  </nav>
-);
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <header className="navbar-main sticky-top shadow-sm ">
+      <div className="navbar-container ">
+        {/* Logo */}
+        <NavLink to="/" className="logo" >
+          <img src="/logo.png" alt="SOMTRAVEL AGENCY" />
+        </NavLink>
+
+        {/* Mobile Toggle */}
+        <button className="menu-toggle" onClick={() => setIsOpen(!isOpen)}>
+          <span className="bar"></span>
+          <span className="bar"></span>
+          <span className="bar"></span>
+        </button>
+
+        {/* Nav Links */}
+        <nav className={`nav-links ${isOpen ? 'open' : ''}`}>
+          <NavLink to="/" end>Home</NavLink>
+          <NavLink to="/ndc">⭐ NDC</NavLink>
+          <NavLink to="/ethnic">✈️ Ethnic</NavLink>
+          <NavLink to="/transactions">Transactions</NavLink>
+          <NavLink to="/charge-deposit">Charge Deposit</NavLink>
+
+          <div className="dropdown">
+            <span>Reserves ▾</span>
+            <div className="dropdown-menu">
+              <NavLink to="/reserves/domestic">Domestic</NavLink>
+              <NavLink to="/reserves/international">International</NavLink>
+            </div>
+          </div>
+
+          <NavLink to="/support">Support</NavLink>
+        </nav>
+      </div>
+    </header>
+  );
+};
 
 export default Navbar;

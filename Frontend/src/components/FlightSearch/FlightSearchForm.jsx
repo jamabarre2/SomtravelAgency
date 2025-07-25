@@ -1,12 +1,14 @@
+// FlightSearchForm.js
 import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import TripTypeSelector from './TripTypeSelector';
 import AirportSelect from './AirportSelect';
 import DateInputGroup from './DateInputGroup';
 import PassengerSelector from './PassengerSelector';
 import TravelClassSelector from './TravelClassSelector';
+import './FlightSearchForm.css';
 
-const FlightSearchForm = ({ onSearch }) => {
+const FlightSearchForm = ({ onSearch, initialData = {}, isMini = false }) => {
   const {
     control,
     register,
@@ -16,17 +18,25 @@ const FlightSearchForm = ({ onSearch }) => {
     formState: { errors }
   } = useForm({
     defaultValues: {
-      tripType: 'round-trip',
-      from: null,
-      to: null,
-      departureDate: '',
-      returnDate: '',
-      travelClass: 'ECONOMY'
+      tripType: initialData.tripType || 'round-trip',
+      from: initialData.from || null,
+      to: initialData.to || null,
+      departureDate: initialData.departureDate || '',
+      returnDate: initialData.returnDate || '',
+      travelClass: initialData.travelClass || 'ECONOMY',
+      flexibleDates: initialData.flexibleDates || false
     }
   });
 
-  const [passengers, setPassengers] = useState({ adult: 1, child: 0, infant: 0 });
+  const [passengers, setPassengers] = useState({
+    adult: initialData.adults || 1,
+    child: initialData.children || 0,
+    infant: initialData.infants || 0
+  });
+
   const tripType = watch('tripType');
+  const from = watch('from');
+  const to = watch('to');
 
   useEffect(() => {
     if (tripType === 'one-way') {
@@ -34,7 +44,18 @@ const FlightSearchForm = ({ onSearch }) => {
     }
   }, [tripType, setValue]);
 
+  useEffect(() => {
+    if (from?.value && to?.value && from.value === to.value) {
+      setValue('to', null);
+    }
+  }, [from, to, setValue]);
+
   const onSubmit = (data) => {
+    if (passengers.adult < 1) {
+      alert('At least one adult passenger is required.');
+      return;
+    }
+
     const payload = {
       originLocationCode: data.from?.value,
       destinationLocationCode: data.to?.value,
@@ -44,69 +65,55 @@ const FlightSearchForm = ({ onSearch }) => {
       children: passengers.child,
       infants: passengers.infant,
       travelClass: data.travelClass,
-      currencyCode: 'EUR'
+      currencyCode: 'EUR',
+      tripType,
+      searchDateWindow: data.flexibleDates ? 'PLUS_MINUS_3DAYS' : undefined,
+      flexibleDates: data.flexibleDates
     };
 
     onSearch?.(payload);
   };
 
   return (
-    <div className="container my-4">
+    <div className={`container ${isMini ? 'mb-3' : 'my-4'}`}>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="border rounded shadow-sm p-4 bg-white"
-        style={{ maxWidth: '800px', margin: 'auto' }}
+        className={`flight-search-form border rounded shadow-sm bg-white ${isMini ? 'p-3' : 'p-4 mx-auto'}`}
+        style={isMini ? { maxWidth: '650px' } : { maxWidth: '800px' }}
       >
-        {/* Trip Type Selector */}
-        <TripTypeSelector control={control} />
-
-        {/* From / To Airports */}
-        <div className="row">
-          <div className="col-md-6 mb-3">
-            <AirportSelect
-              name="from"
-              control={control}
-              label="From"
-              error={errors.from}
-              rules={{ required: 'Origin airport is required' }}
-            />
-          </div>
-          <div className="col-md-6 mb-3">
-            <AirportSelect
-              name="to"
-              control={control}
-              label="To"
-              error={errors.to}
-              rules={{ required: 'Destination airport is required' }}
-            />
+        <div className="row g-2 mb-2">
+          <div className="col-12">
+            <TripTypeSelector control={control} isMini={isMini} />
           </div>
         </div>
 
-        {/* Dates */}
-        <DateInputGroup
-          control={control}
-          register={register}
-          watch={watch}
-          tripType={tripType}
-          errors={errors}
-        />
-
-        {/* Passenger & Travel Class Selectors Aligned */}
-        <div className="row mb-3">
-          <div className="col-md-6 d-flex flex-column justify-content-end">
-            <PassengerSelector
-              passengers={passengers}
-              setPassengers={setPassengers}
-            />
+        <div className="row g-2 align-items-end">
+          <div className="col-md-6">
+            <AirportSelect name="from" control={control} error={errors.from} rules={{ required: 'Origin airport is required' }} isMini={isMini} />
           </div>
-          <div className="col-md-6 d-flex flex-column justify-content-end">
-            <TravelClassSelector control={control} />
+          <div className="col-md-6">
+            <AirportSelect name="to" control={control} error={errors.to} rules={{ required: 'Destination airport is required' }} isMini={isMini} />
           </div>
         </div>
 
-        <button type="submit" className="btn btn-primary w-100">
-          Search Flights
-        </button>
+        <div className="row g-2 mt-2 align-items-end">
+          <DateInputGroup control={control} watch={watch} errors={errors} tripType={tripType} isMini={isMini} />
+        </div>
+
+        <div className="row g-2 mt-2 align-items-end">
+          <div className="col-md-6">
+            <PassengerSelector passengers={passengers} setPassengers={setPassengers} isMini={isMini} />
+          </div>
+          <div className="col-md-6">
+            <TravelClassSelector control={control} isMini={isMini} />
+          </div>
+        </div>
+
+        <div className="row mt-3">
+          <div className="col">
+            <button type="submit" className="btn btn-primary w-100">Search Flights</button>
+          </div>
+        </div>
       </form>
     </div>
   );

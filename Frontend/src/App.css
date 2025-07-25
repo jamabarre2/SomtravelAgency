@@ -12,3 +12,11 @@
   display: block !important;
   width: 100%;
 }
+.airport-select-mini .react-select__control {
+  min-height: 32px;
+  font-size: 0.85rem;
+}
+.passenger-selector-mini input {
+  height: 32px;
+  font-size: 0.85rem;
+}

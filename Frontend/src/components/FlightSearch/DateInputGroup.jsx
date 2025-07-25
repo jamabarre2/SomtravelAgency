@@ -1,83 +1,69 @@
 import React from 'react';
-import DatePicker from 'react-datepicker';
 import { Controller } from 'react-hook-form';
+import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-const DateInputGroup = ({ control, watch, tripType, errors, compact = false }) => {
+const DateInputGroup = ({ control, watch, errors, tripType }) => {
   const departureDate = watch('departureDate');
   const returnDate = watch('returnDate');
 
-  const inputClass = `form-control ${compact ? 'form-control-sm' : ''}`;
-  const duration =
-    tripType === 'round-trip' &&
-    departureDate &&
-    returnDate
-      ? Math.round(
-          (new Date(returnDate) - new Date(departureDate)) /
-            (1000 * 60 * 60 * 24)
-        )
-      : null;
-
   return (
-    <div className="row gx-2 gy-2">
+    <div className="row g-2">
+      {/* Departure Date */}
       <div className="col-md-6">
-        <label className="form-label d-block">Departure Date</label>
+        <label className="form-label">Departure</label>
         <Controller
-          name="departureDate"
           control={control}
+          name="departureDate"
           rules={{ required: 'Departure date is required' }}
           render={({ field }) => (
             <DatePicker
               {...field}
-              className={inputClass}
               selected={field.value ? new Date(field.value) : null}
-              onChange={(date) =>
-                field.onChange(date?.toISOString().split('T')[0])
-              }
-              dateFormat="dd MMM yyyy"
+              onChange={(date) => field.onChange(date?.toISOString().split('T')[0])}
               minDate={new Date()}
-              placeholderText="Select departure date"
-              wrapperClassName="w-100"
+              className="form-control"
+              placeholderText="Select departure"
+              dateFormat="yyyy-MM-dd"
             />
           )}
         />
         {errors.departureDate && (
-          <small className="text-danger">{errors.departureDate.message}</small>
+          <div className="text-danger small">{errors.departureDate.message}</div>
         )}
       </div>
 
+      {/* Return Date (only for round-trip) */}
       {tripType === 'round-trip' && (
         <div className="col-md-6">
-          <label className="form-label d-block">Return Date</label>
+          <label className="form-label">Return</label>
           <Controller
-            name="returnDate"
             control={control}
+            name="returnDate"
             rules={{
-              required: 'Return date is required for round-trip',
-              validate: (value) =>
-                new Date(value) > new Date(departureDate) ||
-                'Return must be after departure'
+              required: 'Return date is required',
+              validate: (value) => {
+                if (!value) return 'Return date is required';
+                if (departureDate && value < departureDate) {
+                  return 'Return date cannot be before departure';
+                }
+                return true;
+              }
             }}
             render={({ field }) => (
               <DatePicker
                 {...field}
-                className={inputClass}
                 selected={field.value ? new Date(field.value) : null}
-                onChange={(date) =>
-                  field.onChange(date?.toISOString().split('T')[0])
-                }
-                dateFormat="dd MMM yyyy"
+                onChange={(date) => field.onChange(date?.toISOString().split('T')[0])}
                 minDate={departureDate ? new Date(departureDate) : new Date()}
-                placeholderText="Select return date"
-                wrapperClassName="w-100"
+                className="form-control"
+                placeholderText="Select return"
+                dateFormat="yyyy-MM-dd"
               />
             )}
           />
           {errors.returnDate && (
-            <small className="text-danger">{errors.returnDate.message}</small>
-          )}
-          {duration > 0 && (
-            <small className="text-muted d-block mt-1">{duration} night{duration > 1 ? 's' : ''}</small>
+            <div className="text-danger small">{errors.returnDate.message}</div>
           )}
         </div>
       )}
